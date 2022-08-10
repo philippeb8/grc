@@ -78,7 +78,7 @@ for key in galaxies:
         w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
         ft2velocities = [y + w * x for (x, y) in zip(xvelocities, ftvelocities)]
         
-        diff = abs(sum([(y1 - y2) for (y1, y2) in zip(yvelocities, ft2velocities)]))
+        diff = sum([abs(y1 - y2) for (y1, y2) in zip(yvelocities, ft2velocities)])
         
         if diff < shortestdiff:
             shortestw = w
@@ -95,6 +95,8 @@ for key in galaxies:
     plt.plot(sig_ff[0][0], sig_ff[0][1], label='Observed Data')
     plt.plot(sig_ff[1][0], sig_ff[1][1], label='Theoretical Data')
     plt.legend(loc="upper center")
+    plt.xlim(left=0)
+    plt.ylim(bottom=0)
 
     if not plt.waitforbuttonpress():
         exit()
