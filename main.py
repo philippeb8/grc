@@ -49,7 +49,6 @@ file2.close()
 
 plt.subplot(1, 1, 1)
 plt.grid(True, which='both')
-plt.legend(loc="upper center")
 
 mng = plt.get_current_fig_manager()
 mng.resize(1024, 768*2/3)
@@ -74,7 +73,7 @@ for key in galaxies:
     shortestdiff = 9e99
     shortestvelocities = []
     
-    for h in [1e17, 5e17, 1e18, 5e18, 1e19, 5e19, 1e20]:
+    for h in [1e17, 5e17, 1e18, 5e18, 1e19, 5e19, 1e20, 5e20]:
         ftvelocities = [h/(m/x+h)*math.sqrt(G*m/x) for x in xvelocities]
         w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
         ft2velocities = [y + w * x for (x, y) in zip(xvelocities, ftvelocities)]
@@ -95,6 +94,7 @@ for key in galaxies:
 
     plt.plot(sig_ff[0][0], sig_ff[0][1], label='Observed Data')
     plt.plot(sig_ff[1][0], sig_ff[1][1], label='Theoretical Data')
+    plt.legend(loc="upper center")
 
     if not plt.waitforbuttonpress():
         exit()
