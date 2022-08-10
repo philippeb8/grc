@@ -65,6 +65,10 @@ for key in galaxies:
     
     xvelocities = [x for (x, y) in graph]
     yvelocities = [y for (x, y) in graph]
+    
+    # Skip LSB galaxies
+    if max(yvelocities) < 100000:
+        continue
 
     sig_ff.append([xvelocities, yvelocities])
     
