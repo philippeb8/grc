@@ -60,7 +60,6 @@ G = 6.674e-11
 for key in galaxies:
     sig_ff = []
 
-    m = galaxies[key]
     graph = velocities[key]
     
     xvelocities = [x for (x, y) in graph]
@@ -72,29 +71,31 @@ for key in galaxies:
 
     sig_ff.append([xvelocities, yvelocities])
     
+    shortestm = 0.0
     shortestw = 0.0
-    shortesth = 1e19
+    shortesth = 0.0
     shortestdiff = 9e99
     shortestvelocities = []
-    
-    for h in np.arange(1e19, 5e20, 1e19):
-        ftvelocities = [h/(m/x+h)*math.sqrt(G*m/x) for x in xvelocities]
-        w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
-        ft2velocities = [y + w * x for (x, y) in zip(xvelocities, ftvelocities)]
-        
-        diff = sum([abs(y1 - y2) for (y1, y2) in zip(yvelocities, ft2velocities)])
-        
-        if diff < shortestdiff:
-            shortestw = w
-            shortesth = h
-            shortestdiff = diff
+
+    for m in np.arange(galaxies[key] / 10, galaxies[key] * 10, pow(10, math.floor(math.log(galaxies[key], 10)))):
+        for h in np.arange(1e19, 5e20, 1e19):
+            ftvelocities = [h/(m/x+h)*math.sqrt(G*m/x) for x in xvelocities]
+            w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
+            ft2velocities = [y + w * x for (x, y) in zip(xvelocities, ftvelocities)]
             
-        shortestvelocities = ft2velocities
+            diff = sum([abs(y1 - y2) for (y1, y2) in zip(yvelocities, ft2velocities)])
+            
+            if diff < shortestdiff:
+                shortestm = m
+                shortestw = w
+                shortesth = h
+                shortestdiff = diff
+                shortestvelocities = ft2velocities
 
     sig_ff.append([xvelocities, shortestvelocities])
 
     plt.clf()
-    plt.title(key + " Rotation Curve vs Radius (h = " + str(shortesth) + ", w = " + str(shortestw) + ")")
+    plt.title(key + " Rotation Curve vs Radius (h = " + str(shortesth) + ", m/m_0 = " + str(shortestm / galaxies[key]) + ")")
 
     plt.plot(sig_ff[0][0], sig_ff[0][1], label='Observed Data')
     plt.plot(sig_ff[1][0], sig_ff[1][1], label='Theoretical Data')
