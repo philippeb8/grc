@@ -69,7 +69,7 @@ for key in galaxies:
     shortestm = 0.0
     shortestw = 0.0
     shortesth = 0.0
-    shortestdiff = 9e99
+    shorteststddev = 9e99
     shortestvelocities = []
     
     for m in np.arange(galaxies[key] / 15, galaxies[key] * 15, pow(10, math.floor(math.log(galaxies[key], 10))) / 2):
@@ -78,16 +78,16 @@ for key in galaxies:
             w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
             ft2velocities = [y + w * x for (x, y) in zip(xvelocities, ftvelocities)]
             
-            diff = sum([abs(y1 - y2) for (y1, y2) in zip(yvelocities, ft2velocities)])
+            stddev = np.std([(y1 - y2) for (y1, y2) in zip(yvelocities, ft2velocities)])
             
-            if diff < shortestdiff:
+            if stddev < shorteststddev:
                 shortestm = m
                 shortestw = w
                 shortesth = h
-                shortestdiff = diff
+                shorteststddev = stddev
                 shortestvelocities = ft2velocities
     
-    sortedgalaxies[shortestdiff] = (key, galaxies[key], shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities)
+    sortedgalaxies[shorteststddev] = (key, galaxies[key], shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities)
 
 for count, (key, value) in enumerate(sorted(sortedgalaxies.items(), key=lambda x: x[0])):
     observed = [value[5], value[6]]
