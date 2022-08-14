@@ -72,7 +72,7 @@ for count, key in enumerate(galaxies):
     shorteststddev = 9e99
     shortestvelocities = []
     
-    for h in np.arange(1e20 / 40, 1e20 * 40, 1e20 / 2):
+    for h in np.arange(1e20 / 100, 1e20 * 100, 1e20 / 2):
         for m in np.arange(galaxies[key] / 15, galaxies[key] * 15, pow(10, math.floor(math.log(galaxies[key], 10))) / 2):
             ftvelocities = [h/(m/x+h)*math.sqrt(G*m/x) for x in xvelocities]
             w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
@@ -90,14 +90,14 @@ for count, key in enumerate(galaxies):
     totalstddev += shorteststddev
     sortedgalaxies[shorteststddev] = (key, galaxies[key], shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities)
 
-print("Mean stddev = ", totalstddev / len(galaxies))
+print("Mean stddev =", totalstddev / len(galaxies), "m/s")
 
 for count, (key, value) in enumerate(sorted(sortedgalaxies.items(), key=lambda x: x[0])):
     observed = [value[5], value[6]]
     theoretical = [value[5], value[7]]
 
     plt.clf()
-    plt.title(str(count + 1) + "/" + str(len(sortedgalaxies)) + ": " + str(value[0]) + " Tangential Velocity vs Radius (h = " + '{:.2e}'.format(value[4]) + ", m/m_0 = " + '{:.2e}'.format(value[2] / value[1]) + ")")
+    plt.title(str(count + 1) + "/" + str(len(sortedgalaxies)) + ": " + str(value[0]) + " Tangential Velocity vs Radius (h = " + '{:.2e}'.format(value[4]) + " kg/m, m/m_0 = " + '{:.2e}'.format(value[2] / value[1]) + ")")
 
     plt.plot(observed[0], observed[1], label='Observed Data')
     plt.plot(theoretical[0], theoretical[1], label='Theoretical Data')
