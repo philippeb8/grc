@@ -46,7 +46,6 @@ while True:
   
 file2.close()
 
-
 plt.subplot(1, 1, 1)
 plt.grid(True, which='both')
 
@@ -57,6 +56,8 @@ plt.show(False)
 
 G = 6.674e-11
 
+sortedgalaxies = {}
+
 for key in galaxies:
     sig_ff = []
 
@@ -65,20 +66,14 @@ for key in galaxies:
     xvelocities = [x for (x, y) in graph]
     yvelocities = [y for (x, y) in graph]
     
-    # Skipping low speed galaxies
-    if max(yvelocities) < 100000:
-        continue
-
-    sig_ff.append([xvelocities, yvelocities])
-    
     shortestm = 0.0
     shortestw = 0.0
     shortesth = 0.0
     shortestdiff = 9e99
     shortestvelocities = []
-
-    for m in np.arange(galaxies[key] / 10, galaxies[key] * 10, pow(10, math.floor(math.log(galaxies[key], 10)))):
-        for h in np.arange(1e19, 5e20, 1e19):
+    
+    for m in np.arange(galaxies[key] / 15, galaxies[key] * 15, pow(10, math.floor(math.log(galaxies[key], 10))) / 2):
+        for h in np.arange(1e20 / 20, 1e20 * 20, 1e20 / 2):
             ftvelocities = [h/(m/x+h)*math.sqrt(G*m/x) for x in xvelocities]
             w = (yvelocities[-1] - ftvelocities[-1]) / xvelocities[-1]
             ft2velocities = [y + w * x for (x, y) in zip(xvelocities, ftvelocities)]
@@ -91,14 +86,18 @@ for key in galaxies:
                 shortesth = h
                 shortestdiff = diff
                 shortestvelocities = ft2velocities
+    
+    sortedgalaxies[shortestdiff] = (key, galaxies[key], shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities)
 
-    sig_ff.append([xvelocities, shortestvelocities])
+for count, (key, value) in enumerate(sorted(sortedgalaxies.items(), key=lambda x: x[0])):
+    observed = [value[5], value[6]]
+    theoretical = [value[5], value[7]]
 
     plt.clf()
-    plt.title(key + " Rotation Curve vs Radius (h = " + str(shortesth) + ", m/m_0 = " + str(shortestm / galaxies[key]) + ")")
+    plt.title(str(count) + "/" + str(len(sortedgalaxies)) + ": " + value[0] + " Tangential Velocity vs Radius (h = " + str(value[4]) + ", m/m_0 = " + str(value[2] / value[1]) + ")")
 
-    plt.plot(sig_ff[0][0], sig_ff[0][1], label='Observed Data')
-    plt.plot(sig_ff[1][0], sig_ff[1][1], label='Theoretical Data')
+    plt.plot(observed[0], observed[1], label='Observed Data')
+    plt.plot(theoretical[0], theoretical[1], label='Theoretical Data')
     plt.legend(loc="upper center")
     plt.xlim(left=0)
     plt.ylim(bottom=0)
