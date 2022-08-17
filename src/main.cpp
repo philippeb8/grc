@@ -57,7 +57,7 @@ namespace statistics
 {
 
 template <typename U, typename T = double>
-    T stddev(U begin, U end)
+    inline T stddev(U begin, U end)
     {
         auto const size = distance(begin, end);
 
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
         double shorteststddev = numeric_limits<double>::max();
         list<double> shortestvelocities;
 
-        for (double m = i->second / 15; m < i->second * 15; m += pow(10, floor(log10(i->second))) / 2)
-            for (double h = 1e20 / 20; h < 1e20 * 20; h += 1e20 / 2)
+        for (double h = 1e20 / 100; h < 1e20 * 100; h += 1e20 / 2)
+            for (double m = i->second / 15; m < i->second * 15; m += pow(10, floor(log10(i->second))) / 2)
             {
                 list<double> ftvelocities;
                 for (auto x = xvelocities.begin(); x != xvelocities.end(); ++ x)
@@ -195,6 +195,8 @@ int main(int argc, char *argv[])
 
         double xmax = 0, ymax = 0;
 
+        observed.append(0.0, 0.0);
+
         for (auto x = get<5>(i->second).begin(), y = get<6>(i->second).begin(); x != get<5>(i->second).end(); ++ x, ++ y)
         {
             observed.append(*x, *y);
@@ -204,6 +206,8 @@ int main(int argc, char *argv[])
             if (*y > ymax)
                 ymax = *y;
         }
+
+        theoretical.append(0.0, 0.0);
 
         for (auto x = get<5>(i->second).begin(), y = get<7>(i->second).begin(); x != get<5>(i->second).end(); ++ x, ++ y)
         {
