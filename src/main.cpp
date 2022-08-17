@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
 
     static double const G = 6.671e-11;
 
+    double totalstddev = 0.0;
+
     map<double, tuple<string, double, double, double, double, list<double>, list<double>, list<double>>> sortedgalaxies;
 
     for (auto i = galaxies.begin(); i != galaxies.end(); ++ i)
@@ -178,10 +180,16 @@ int main(int argc, char *argv[])
                 }
             }
 
+        totalstddev += shorteststddev;
         sortedgalaxies[shorteststddev] = make_tuple(i->first, i->second, shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities);
     }
 
     window.show();
+
+    ostringstream out;
+    out << totalstddev / galaxies.size();
+
+    QMessageBox::information(chartView, "Mean Standard Deviation", out.str().c_str());
 
     size_t count = 0;
     for (auto i = sortedgalaxies.begin(); i != sortedgalaxies.end(); ++ i, ++ count)
