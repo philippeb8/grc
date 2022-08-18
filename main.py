@@ -13,7 +13,7 @@ import matplotlib.image as mpimg
 
 galaxies = {}
 
-file1 = open('gm.txt', 'r')
+file1 = open('db/0/gm.txt', 'r')
   
 while True:
     line = file1.readline()
@@ -29,7 +29,7 @@ file1.close()
 
 velocities = {}
 
-file2 = open('grc.txt', 'r')
+file2 = open('db/0/grc.txt', 'r')
   
 while True:
     line = file2.readline()

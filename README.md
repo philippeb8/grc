@@ -7,3 +7,5 @@ Data taken from:
 
 http://astroweb.cwru.edu/SPARC/MaximumDiskData.mrt
 http://astroweb.cwru.edu/SPARC/MassModels_Lelli2016c.mrt
+
+http://www.ioa.s.u-tokyo.ac.jp/~sofue/smd2018/

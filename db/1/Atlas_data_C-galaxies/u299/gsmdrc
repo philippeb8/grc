@@ -1,0 +1,35 @@
+set terminal postscript eps enhanced
+set xr[0:30]
+set yr[0:400]
+set xlabel "{/=30 R (kpc)}"
+set ylabel "{/=30 V (km/s)}"
+set tics font "Arial, 26"
+set output "xrc.eps"
+set size 1.0,0.8
+plot "rc.dat" using 1:2 with lines lt 1 lw 5 notitle
+
+set size 1.0,1.3
+plot "ml.dat" using 1:3 with lines lt 1 lw 5  notitle
+replot "ml.dat" using 1:4 with lines lt 3 lw 4 notitle 
+replot "ml.dat" using 1:7 with lines lt 1 lw 2  notitle
+
+replot "../s100.dat"  using 1:2 with lines lt 1 lw 3  notitle
+replot "../s1000.dat"  using 1:2 with lines lt 1 lw 3  notitle
+replot "../v100.dat" using 1:2 with lines lt 1 lw 3  notitle
+replot "../v200.dat" using 1:2 with lines lt 1 lw 3  notitle
+replot "../v300.dat" using 1:2 with lines lt 1 lw 3  notitle 
+replot "../v400.dat" using 1:2 with lines lt 1 lw 3 notitle
+set label 1 at first 30.5, 10 "0" font "Helvetica,24"
+set label 2 at first 30.5, 31.62 "100" font "Helvetica,24"
+set label 3 at first 30.5, 100 "200" font "Helvetica,24"
+set label 4 at first 30.5, 1000 "400" font "Helvetica,24"
+set label 5 at graph 1.06,0.4  "{/=30 V (km/s)}" rotate by 90
+
+set xr[0:30]
+set yr[10:10000]
+set ylabel "{/=30 SMD (Msun/sqpc)}"
+set tics font "Arial, 26"
+set logscale y
+
+set output "xsmd.eps"
+replot 

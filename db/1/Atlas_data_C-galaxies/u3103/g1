@@ -1,0 +1,24 @@
+set terminal postscript eps enhanced
+!rm x*eps
+set xr[0:30]
+set yr[0:300]
+set xlabel "{/=26 R (kpc)}"
+set ylabel "{/=26 Vrot (km/s)}"
+set tics font "Arial, 26"
+set output "xrc.eps"
+set size 1.0,0.8
+plot "ml.dat" using 1:7 with lines lt 1 lw 5
+
+set size 1.0,1.3
+plot "ml.dat" using 1:3 with lines lt 1 lw 5 
+replot "ml.dat" using 1:4 with lines lt 3 lw 3 
+set xr[0:30]
+set yr[10:10000]
+set xlabel "{/=26 R (kpc)}"
+set ylabel "{/=26 SMD (Msun/sqpc)}"
+set tics font "Arial, 26"
+set logscale y
+set output "xml.eps"
+replot 
+
+

@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include <string>
 #include <numeric>
 #include <map>
@@ -47,6 +48,10 @@
 #include <tuple>
 #include <vector>
 #include <iterator>
+#include <mutex>
+#include <thread>
+#include <algorithm>
+#include <functional>
 
 
 using namespace std;
@@ -75,6 +80,63 @@ template <typename U, typename T = double>
 
 }
 
+namespace utilities
+{
+
+double constexpr pi = 3.14159265358979323846;
+
+list<filesystem::path> recursive_search(const std::string& path, const std::string& filename)
+{
+    if (filesystem::is_directory(path))
+    {
+        list<filesystem::path> filenames;
+
+        for (const auto & entry : filesystem::recursive_directory_iterator(path))
+            if (entry.is_regular_file() && entry.path().filename() == filename)
+                filenames.emplace_back(entry.path());
+
+        return filenames;
+    }
+    else
+    {
+        return {};
+    }
+}
+
+template <typename I>
+    void parallel_for(I begin, I end, function<void (I start, I end)> functor, bool use_threads = true)
+    {
+        unsigned const nb_threads_hint = thread::hardware_concurrency();
+        unsigned const nb_threads = nb_threads_hint == 0 ? 8 : (nb_threads_hint);
+
+        size_t const nb_elements = distance(begin, end);
+        unsigned const batch_size = nb_elements / nb_threads;
+        unsigned const batch_remainder = nb_elements % nb_threads;
+
+        vector< std::thread > my_threads(nb_threads);
+
+        if( use_threads )
+            for(unsigned i = 0; i < nb_threads; ++i)
+            {
+                I start = next(begin, i * batch_size);
+                my_threads[i] = thread(functor, start, next(start, batch_size));
+            }
+        else
+            for(unsigned i = 0; i < nb_threads; ++i)
+            {
+                I start = next(begin, i * batch_size);
+                functor(start, next(start, batch_size));
+            }
+
+        I start = next(begin, nb_threads * batch_size);
+        functor(start, next(start, batch_remainder));
+
+        if( use_threads )
+            for_each(my_threads.begin(), my_threads.end(), std::mem_fn(& std::thread::join));
+    }
+
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -91,12 +153,14 @@ int main(int argc, char *argv[])
     window.setCentralWidget(chartView);
     window.resize(1024, 768*2/3);
 
-    string const currentDir = QDir::currentPath().toStdString() + "/../";
+    string const currentDir = QDir::currentPath().toStdString() + "/../grc/";
 
     map<string, double> galaxies;
+    map<string, tuple<list<double>, list<double>>> velocities;
 
+    // db0
     {
-        ifstream file(currentDir + "gm.txt");
+        ifstream file(currentDir + "db/0/gm.txt");
 
         for (std::string line; std::getline(file, line); )
         {
@@ -109,14 +173,14 @@ int main(int argc, char *argv[])
                 if (QMessageBox::critical(chartView, "Critical Error", "Error reading file.") == QMessageBox::Ok)
                     return -1;
 
+            std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
             galaxies[name] = fields[8] * 1e9 * fields[0] * 2e30;
         }
     }
 
-    map<string, tuple<list<double>, list<double>>> velocities;
-
     {
-        ifstream file(currentDir + "grc.txt");
+        ifstream file(currentDir + "db/0/grc.txt");
 
         for (std::string line; std::getline(file, line); )
         {
@@ -129,60 +193,150 @@ int main(int argc, char *argv[])
                 if (QMessageBox::critical(chartView, "Critical Error", "Error reading file.") == QMessageBox::Ok)
                     return -1;
 
+            std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
             get<0>(velocities[name]).push_back(fields[1] * 3.08567758128e+19);
             get<1>(velocities[name]).push_back(fields[2] * 1000);
         }
     }
 
+    // db1
+    for (auto const & path : utilities::recursive_search(currentDir + "db/1/", "mlcat.dat"))
+    {
+        list<filesystem::path> dirs(path.begin(), path.end());
+
+        string name = * ++ dirs.rbegin();
+
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+        {
+            ifstream file(path);
+
+            bool first = true;
+            for (std::string line; std::getline(file, line); )
+            {
+                std::istringstream in(line);
+
+                string dummy;
+                double fields[8];
+
+                if (first)
+                {
+                    in >> dummy;
+
+                    first = false;
+
+                    continue;
+                }
+                else if (! (in >> fields[0] >> fields[1] >> fields[2] >> fields[3] >> fields[4] >> fields[5] >> fields[6] >> fields[7]))
+                {
+                    if (QMessageBox::critical(chartView, "Critical Error", "Error reading file.") == QMessageBox::Ok)
+                        return -1;
+                }
+
+                double const h = (fields[0] / fields[7]) * 3.08567758128e+19;
+
+                galaxies[name] += 2.0 * utilities::pi * fields[1] * h * h / 1000.0;
+            }
+        }
+    }
+
+    for (auto const & path : utilities::recursive_search(currentDir + "db/1/", "rc.dat"))
+    {
+        list<filesystem::path> dirs(path.begin(), path.end());
+
+        string name = * ++ dirs.rbegin();
+
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+        {
+            ifstream file(path);
+
+            for (std::string line; std::getline(file, line); )
+            {
+                std::istringstream in(line);
+
+                string dummy;
+                double fields[2];
+
+                if (! (in >> fields[0] >> fields[1]))
+                {
+                    if (QMessageBox::critical(chartView, "Critical Error", "Error reading file.") == QMessageBox::Ok)
+                        return -1;
+                }
+
+                get<0>(velocities[name]).push_back(fields[0] * 3.08567758128e+19);
+                get<1>(velocities[name]).push_back(fields[1] * 1000);
+            }
+        }
+    }
+
     static double const G = 6.671e-11;
 
-    double totalstddev = 0.0;
+    mutex m;
 
+    size_t count = 0;
+    double totalstddev = 0.0;
     map<double, tuple<string, double, double, double, double, list<double>, list<double>, list<double>>> sortedgalaxies;
 
-    for (auto i = galaxies.begin(); i != galaxies.end(); ++ i)
-    {
-        auto & xvelocities = get<0>(velocities[i->first]);
-        auto & yvelocities = get<1>(velocities[i->first]);
-
-        double shortestm = 0;
-        double shortestw = 0;
-        double shortesth = 0;
-        double shorteststddev = numeric_limits<double>::max();
-        list<double> shortestvelocities;
-
-        for (double h = 1e20 / 100; h < 1e20 * 100; h += 1e20 / 2)
-            for (double m = i->second / 15; m < i->second * 15; m += pow(10, floor(log10(i->second))) / 2)
+    utilities::parallel_for<map<string, double>::iterator>
+    (
+        galaxies.begin(),
+        galaxies.end(),
+        [&](map<string, double>::iterator start, map<string, double>::iterator end)
+        {
+            for(auto i = start; i != end; ++i)
             {
-                list<double> ftvelocities;
-                for (auto x = xvelocities.begin(); x != xvelocities.end(); ++ x)
-                    ftvelocities.push_back(h / (m / (*x) + h) * sqrt(G * m / (*x)));
+                qDebug() << count * 100 / galaxies.size() << "%";
 
-                double w = (* yvelocities.rbegin() - * ftvelocities.rbegin()) / * xvelocities.rbegin();
+                auto & xvelocities = get<0>(velocities[i->first]);
+                auto & yvelocities = get<1>(velocities[i->first]);
 
-                list<double> ft2velocities;
-                for (auto x = xvelocities.begin(), y = ftvelocities.begin(); x != xvelocities.end(); ++ x, ++ y)
-                    ft2velocities.push_back((*y) + w * (*x));
+                double shortestm = 0;
+                double shortestw = 0;
+                double shortesth = 0;
+                double shorteststddev = numeric_limits<double>::max();
+                list<double> shortestvelocities;
 
-                list<double> diff;
-                for (auto y1 = yvelocities.begin(), y2 = ft2velocities.begin(); y1 != yvelocities.end(); ++ y1, ++ y2)
-                    diff.push_back((*y1) - (*y2));
+                for (double h = 1e20 / 100; h < 1e20 * 100; h += 1e20 / 2)
+                    for (double m = i->second / 15; m < i->second * 15; m += pow(10, floor(log10(i->second))) / 2)
+                    {
+                        list<double> ftvelocities;
+                        for (auto x = xvelocities.begin(); x != xvelocities.end(); ++ x)
+                            ftvelocities.push_back(h / (m / (*x) + h) * sqrt(G * m / (*x)));
 
-                double stddev = statistics::stddev(diff.begin(), diff.end());
+                        double w = (* yvelocities.rbegin() - * ftvelocities.rbegin()) / * xvelocities.rbegin();
 
-                if (stddev < shorteststddev)
+                        list<double> ft2velocities;
+                        for (auto x = xvelocities.begin(), y = ftvelocities.begin(); x != xvelocities.end(); ++ x, ++ y)
+                            ft2velocities.push_back((*y) + w * (*x));
+
+                        list<double> diff;
+                        for (auto y1 = yvelocities.begin(), y2 = ft2velocities.begin(); y1 != yvelocities.end(); ++ y1, ++ y2)
+                            diff.push_back((*y1) - (*y2));
+
+                        double stddev = statistics::stddev(diff.begin(), diff.end());
+
+                        if (stddev < shorteststddev)
+                        {
+                            shortestm = m;
+                            shortestw = w;
+                            shortesth = h;
+                            shorteststddev = stddev;
+                            shortestvelocities.swap(ft2velocities);
+                        }
+                    }
+
                 {
-                    shortestm = m;
-                    shortestw = w;
-                    shortesth = h;
-                    shorteststddev = stddev;
-                    shortestvelocities.swap(ft2velocities);
+                    scoped_lock lock(m);
+
+                    ++ count;
+                    totalstddev += shorteststddev;
+                    sortedgalaxies[shorteststddev] = make_tuple(i->first, i->second, shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities);
                 }
             }
-
-        totalstddev += shorteststddev;
-        sortedgalaxies[shorteststddev] = make_tuple(i->first, i->second, shortestm, shortestw, shortesth, xvelocities, yvelocities, shortestvelocities);
-    }
+        }
+    );
 
     window.show();
 
@@ -191,7 +345,7 @@ int main(int argc, char *argv[])
 
     QMessageBox::information(chartView, "Mean Standard Deviation", out.str().c_str());
 
-    size_t count = 0;
+    count = 0;
     for (auto i = sortedgalaxies.begin(); i != sortedgalaxies.end(); ++ i, ++ count)
     {
         QLineSeries observed, theoretical;

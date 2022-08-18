@@ -1,0 +1,25 @@
+In each directory with galaxy name, data files include:
+
+mlcat.dat
+ 1st line: Galaxy name (0 means none)
+ 2nd line and after:
+   1st column: R [kpc]
+   2nd column: SB=mu [Lsun/sqpc] w-band corrected for inclination 
+   3rd column: SMD-F [Msun/sqpc] 
+   4th column: SMD-S [Msun/sqpc] 
+   5th column: ML-F [Lsun/Msun]  ibid
+   6th column: ML-S [Lsun/Msun]  ibid
+   7th column: Vrot [km/s]
+   8th column: R/h (h=scale radius)
+
+rc.dat
+   1st column: R [kpc]
+   2nd column: Vrot [km/s]
+
+xml.eps
+   Plot of w-band SB (=mu), ML-F, ML-S corrected for inclination,
+   SMD-F, and SMD-S in eps (Same in pdf is shown on the figure page)
+
+xrc.eps
+   Plot of rotation curve
+   
