@@ -104,6 +104,7 @@ for count, (key, value) in enumerate(sorted(sortedgalaxies.items(), key=lambda x
     plt.legend(loc="upper center")
     plt.xlim(left=0)
     plt.ylim(bottom=0)
+    #plt.savefig('grc' + str(count) + '.svg', format='svg', dpi=1200)
 
     if not plt.waitforbuttonpress():
         exit()
