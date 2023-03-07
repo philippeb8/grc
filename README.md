@@ -9,3 +9,5 @@ http://astroweb.cwru.edu/SPARC/MaximumDiskData.mrt
 http://astroweb.cwru.edu/SPARC/MassModels_Lelli2016c.mrt
 
 http://www.ioa.s.u-tokyo.ac.jp/~sofue/smd2018/
+
+[![DOI](https://zenodo.org/badge/523206227.svg)](https://zenodo.org/badge/latestdoi/523206227)
